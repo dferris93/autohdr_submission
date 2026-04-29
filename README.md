@@ -325,12 +325,18 @@ python autohdr-challenge-starter/solution.py
 ## Repository Layout
 
 - `group_camera_angles.py`: core image matcher and local CLI.
-- `autohdr-challenge-starter/solution.py`: competition entrypoint.
-- `autohdr-challenge-starter/Dockerfile`: Docker build used for submissions.
-- `autohdr-challenge-starter/group_camera_angles.py`: packaged copy of the core
-  matcher for Docker builds.
 - `score_challenge_predictions.py`: exact-set scorer for public manifests.
 - `requirements.txt`: local Python dependencies.
+- `.gitignore`: local environment and generated artifact ignores.
+- `AGENTS.md`: local agent handoff and project-state notes.
+- `autohdr-challenge-starter/solution.py`: competition entrypoint.
+- `autohdr-challenge-starter/group_camera_angles.py`: packaged copy of the core
+  matcher for Docker builds.
+- `autohdr-challenge-starter/Dockerfile`: Docker build used for submissions.
+- `autohdr-challenge-starter/submission.yaml`: Codabench submission metadata.
+- `autohdr-challenge-starter/README.md`: original challenge starter overview.
+- `autohdr-challenge-starter/SCORING.md`: challenge scoring reference.
+- `autohdr-challenge-starter/SUBMISSION_GUIDE.md`: challenge submission guide.
 
 When changing `group_camera_angles.py`, copy it into the challenge starter before
 building Docker:
