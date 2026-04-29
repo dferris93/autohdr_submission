@@ -1,0 +1,14 @@
+# AutoHDR Challenge — Submission Config
+#
+# Fill in your details and ZIP this file:
+#   zip submission.zip submission.yaml
+#
+# Then upload submission.zip on the Codabench competition page.
+#
+# Machine types:
+#   cpu-large  — 8 vCPU, 16 GB RAM, 30 min timeout
+#   cpu-xlarge — 16 vCPU, 32 GB RAM, 45 min timeout
+
+docker_image: dferris93/autohdr-solution:v3
+machine_type: cpu-xlarge
+email: dan@usrsbin.com
