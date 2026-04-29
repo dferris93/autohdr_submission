@@ -40,6 +40,127 @@ It extracts compact descriptors, finds neighbors blockwise, forms high-confidenc
 compact groups, and optionally checks borderline compact edges with bounded SIFT
 geometry batches.
 
+## Computer Vision Background
+
+The matcher uses standard computer vision pieces in a conservative pipeline. In
+this project, they are used to answer one practical question: can image A be
+geometrically mapped onto image B as the same camera viewpoint?
+
+**SIFT**
+
+SIFT means Scale-Invariant Feature Transform. It finds distinctive local points
+in an image, such as corners, texture changes, tile intersections, window
+corners, cabinet handles, and other stable visual details. For each point, SIFT
+computes a numeric descriptor that summarizes the local pattern around that
+point.
+
+SIFT is useful here because the same room photo may be brighter, darker, shifted,
+slightly cropped, or taken at a different exposure. The exact pixels may change,
+but many local structures remain matchable.
+
+**RootSIFT**
+
+RootSIFT is a normalization of SIFT descriptors that often improves matching. The
+pipeline extracts SIFT-like descriptors and applies RootSIFT normalization before
+matching so descriptor distances are more useful across exposure and contrast
+changes.
+
+**Descriptor**
+
+A descriptor is a vector of numbers that represents either a local image patch or
+a whole image summary. Local descriptors describe SIFT keypoints. Coarse
+descriptors summarize the broader image appearance and are used to pick likely
+candidate neighbors cheaply.
+
+**KNN Matching**
+
+KNN means k-nearest neighbors. For each descriptor in image A, the matcher finds
+the closest descriptors in image B. In this code, that is used to propose local
+feature matches between two images.
+
+This is not enough by itself. Repeated structures, such as identical windows,
+floorboards, cabinet doors, or wall corners, can produce plausible but wrong
+descriptor matches. The later geometry checks decide whether the matches agree
+as one coherent camera transform.
+
+**Lowe Ratio Test**
+
+The Lowe ratio test is a common filter for SIFT matches. If the best match for a
+descriptor is only slightly better than the second-best match, the match is
+ambiguous and is rejected. If the best match is clearly better, it is kept.
+
+This helps reject repeated or generic features before RANSAC sees them.
+
+**Homography**
+
+A homography is a 2D projective transform that maps points from one image plane
+to another. For photos taken from the same camera angle, a homography can often
+explain small shifts, crops, exposure brackets, and minor viewpoint differences.
+
+The matcher estimates a homography from feature matches and then asks whether
+that transform is plausible across the image.
+
+**RANSAC**
+
+RANSAC means Random Sample Consensus. It estimates a model while ignoring
+outliers. Here, the model is the homography. RANSAC repeatedly samples small sets
+of feature matches, estimates a homography, and counts how many other matches
+agree with it.
+
+This matters because some SIFT/KNN matches will be wrong. A pair should only be
+accepted when enough matches support the same geometric transform.
+
+**Inliers And Outliers**
+
+An inlier is a feature match that fits the estimated homography. An outlier is a
+match that does not. The matcher checks both the number of inliers and the inlier
+ratio. A pair with many matches but poor geometric agreement is rejected.
+
+**Reprojection Error**
+
+Reprojection error measures how far a matched point lands from where the
+homography predicts it should land. Lower error means the estimated geometry
+explains the feature matches more cleanly.
+
+This repository uses median reprojection error as one of the pair-acceptance
+gates.
+
+**Corner Shift**
+
+After estimating a homography, the matcher warps the image corners and measures
+how far they move. Small shifts are expected for bracketed captures or slight
+camera movement. Very large shifts may indicate a crop, a bad transform, or a
+different viewpoint. The code checks both average and maximum corner shift.
+
+**Edge And Gradient Agreement**
+
+Edges and gradients describe image structure without relying as heavily on raw
+brightness. They help verify that the mapped images have similar walls, windows,
+floor lines, counters, and room boundaries even when exposure differs.
+
+These checks are especially useful for HDR brackets, where one image may be much
+brighter or darker than another.
+
+**Coarse Candidate Search**
+
+Scoring every possible pair becomes expensive as the dataset grows. Instead, the
+matcher first compares cheaper whole-image descriptors and only runs the more
+expensive SIFT/RANSAC scoring on likely neighbors. `AUTOHDR_MAX_CANDIDATES` and
+`--max-candidates` control how many neighbors are scored.
+
+**Bidirectional Pair Scoring**
+
+KNN matching from image A to image B can produce different evidence than matching
+from image B to image A. The matcher scores both directions and keeps the
+stronger result, which reduces order-sensitive false splits.
+
+**Union-Find / DSU**
+
+Union-find, also called disjoint-set union or DSU, is the clustering structure
+used after pair scoring. Every image starts in its own group. When a pair is
+verified, their groups are unioned. The final connected components become the
+predicted camera-angle groups.
+
 ## Install Without Docker
 
 From the repository root:
