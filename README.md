@@ -237,13 +237,6 @@ python score_challenge_predictions.py \
   /path/to/public_manifest.csv
 ```
 
-The included medium-data helper script expects images at `data/images` and the
-manifest at `data/public_manifest.csv`:
-
-```bash
-./run_autohdr_medium_dataset.sh
-```
-
 ## Run With Docker
 
 Build the competition container from the challenge starter directory:
@@ -337,7 +330,6 @@ python autohdr-challenge-starter/solution.py
 - `autohdr-challenge-starter/group_camera_angles.py`: packaged copy of the core
   matcher for Docker builds.
 - `score_challenge_predictions.py`: exact-set scorer for public manifests.
-- `run_autohdr_medium_dataset.sh`: local helper for the medium public dataset.
 - `requirements.txt`: local Python dependencies.
 
 When changing `group_camera_angles.py`, copy it into the challenge starter before
